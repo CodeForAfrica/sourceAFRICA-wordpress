@@ -183,7 +183,7 @@ class WP_SourceAFRICA {
         global $post;
         $is_wide = intval($filtered_atts['maxwidth']) > $default_sizes['width'];
 
-        if (WP_DocumentCloud::CACHING_ENABLED) {
+        if (WP_SourceAFRICA::CACHING_ENABLED) {
             // This lets WordPress cache the result of the oEmbed call.
             // Thanks to http://bit.ly/1HykA0U for this pattern.
             global $wp_embed;
