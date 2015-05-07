@@ -1,5 +1,5 @@
 (function() {
-    tinymce.create('tinymce.plugins.DocumentCloud', {
+    tinymce.create('tinymce.plugins.sourceAFRICA', {
         /**
          * Initializes the plugin, this will be executed after the plugin has been created.
          * This call is done before the editor instance has finished it's initialization so use the onInit event
@@ -10,7 +10,7 @@
          */
         init : function(ed, url) {
             // Register the command so that it can be invoked by using tinyMCE.activeEditor.execCommand('mceExample');
-            ed.addCommand('documentcloud', function() {
+            ed.addCommand('sourceafrica', function() {
 
                 ed.windowManager.open({
                     file : url + '/window.php?wpbase=' + userSettings.url,
@@ -23,15 +23,15 @@
             });
 
             // Register example button
-            ed.addButton('documentcloud', {
-                title : 'DocumentCloud',
-                cmd : 'documentcloud',
+            ed.addButton('sourceafrica', {
+                title : 'sourceAFRICA',
+                cmd : 'sourceafrica',
                 image : url + '/button.png'
             });
 
             // Add a node change handler, selects the button in the UI when a image is selected
             ed.onNodeChange.add(function(ed, cm, n) {
-                cm.setActive('documentcloud', n.nodeName == 'IMG');
+                cm.setActive('sourceafrica', n.nodeName == 'IMG');
             });
         },
 
@@ -57,16 +57,16 @@
          */
         getInfo : function() {
             return {
-                longname : 'DocumentCloud Plugin',
-                author : 'Chris Amico',
-                authorurl : 'http://stateimpact.npr.org/',
-                infourl : 'http://stateimpact.npr.org/',
+                longname : 'sourceAFRICA Plugin',
+                author : 'Code for Africa',
+                authorurl : 'http://www.codeforafrica.org/',
+                infourl : 'https://sourceafrica.net/',
                 version : "1.0"
             };
         }
     });
 
     // Register plugin
-    tinymce.PluginManager.add('documentcloud', tinymce.plugins.DocumentCloud);
+    tinymce.PluginManager.add('sourceafrica', tinymce.plugins.DocumentCloud);
 })();
 

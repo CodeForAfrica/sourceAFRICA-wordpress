@@ -1,51 +1,53 @@
-# DocumentCloud WordPress plugin
+# sourceAFRICA WordPress plugin
 
-The DocumentCloud WordPress plugin lets you embed [DocumentCloud](https://www.documentcloud.org/) resources into WordPress content using [shortcodes](https://codex.wordpress.org/Shortcode_API).
+The sourceAFRICA WordPress plugin lets you embed [sourceAFRICA](https://sourceafrica.net/) resources into WordPress content using [shortcodes](https://codex.wordpress.org/Shortcode_API).
 
-    [documentcloud url="https://www.documentcloud.org/documents/282753-lefler-thesis.html"]
+    [sourceafrica url="https://sourceafrica.net/documents/19450-everest.html"]
+
+This plugin is based on [DocumentCloud](https://www.documentcloud.org)'s WordPress plugin and is extended to support sourceAFRICA.
 
 ## Installation
 
-1. Upload the contents of the plugin to `wp-content/plugins/documentcloud`
+1. Upload the contents of the plugin to `wp-content/plugins/sourceafrica`
 2. Activate the plugin through the "Plugins" menu
-3. In your posts, embed documents or notes using the DocumentCloud button or the `[documentcloud]` shortcode
+3. In your posts, embed documents or notes using the sourceAFRICA button or the `[sourceAFRICA]` shortcode
 4. Optional: Set a default width/height for all DocumentCloud embeds (which can be overridden on a per-embed basis with the `height/width` attributes) at Settings > DocumentCloud. (This default width will only be used if you set `responsive="false"` on an embed.)
 
-**Upgrading from Navis DocumentCloud:** If you're currently using the Navis DocumentCloud plugin (from which this plugin was built), you'll want to deactivate or delete it before installing this plugin.
+**Using with DocumentCloud Plugin:** If you're currently using the DocumentCloud's plugin (from which this plugin was built), you'll NOT need to deactivate or delete it before installing this plugin.
 
 ## Usage
 
-This plugin allows you to embed DocumentCloud resources using either the raw URL on its own line:
+This plugin allows you to embed sourceAFRICA resources using either the raw URL on its own line:
 
     Here's something you should really take a look at:
     
-    https://www.documentcloud.org/documents/282753-lefler-thesis.html
+    https://sourceafrica.net/documents/19450-everest.html
     
     Isn't that interesting?
 
 Or a custom shortcode:
 
-    [documentcloud url="https://www.documentcloud.org/documents/282753-lefler-thesis.html"]
+    [sourceafrica url="https://sourceafrica.net/documents/19450-everest.html"]
 
-When you save, WordPress fetches and stores the actual embed code HTML from the DocumentCloud servers using oEmbed. You can freely toggle between visual and HTML mode without mangling embed code, and your embed will always be up to date with the latest embed code.
+When you save, WordPress fetches and stores the actual embed code HTML from the sourceAFRICA servers using oEmbed. You can freely toggle between visual and HTML mode without mangling embed code, and your embed will always be up to date with the latest embed code.
 
 By default, documents will have a responsive width (it will narrow and widen as necessary to fill available content area) and use the theme's default height. If you want to override this, you can either set `responsive="false"` or explicitly set a `width`:
 
-    [documentcloud url="https://www.documentcloud.org/documents/282753-lefler-thesis.html" width="600"]
+    [sourceafrica url="https://sourceafrica.net/documents/19450-everest.html" width="600"]
 
-You can set your own defaults in Settings > DocumentCloud, but default widths will be ignored unless `responsive` is disabled:
+You can set your own defaults in Settings > sourceAFRICA, but default widths will be ignored unless `responsive` is disabled:
 
-    [documentcloud url="https://www.documentcloud.org/documents/282753-lefler-thesis.html" responsive="false"]
+    [sourceafrica url="https://sourceafrica.net/documents/19450-everest.html" responsive="false"]
 
 To embed a note, just use any note-specific URL. Notes ignore `width/height` and always act responsively:
 
-    [documentcloud url="https://www.documentcloud.org/documents/282753-lefler-thesis.html#document/p1/a53674"]
+    [sourceafrica url="https://sourceafrica.net/documents/19450-everest.html"]
 
 Here's the full list of embed options you can pass via shortcode attributes; some are specific to the type of resource you're embedding.
 
 ### All resources (documents and notes):
 
-- `url` (**required**, string): Full URL of the DocumentCloud resource.
+- `url` (**required**, string): Full URL of the sourceAFRICA resource.
 - `container` (string): ID of element to insert the embed into; if excluded, embedder will create its own container.
 
 ### Documents only:
@@ -64,13 +66,13 @@ Here's the full list of embed options you can pass via shortcode attributes; som
 - `zoom` (boolean): Hide or show zoom slider.
 - `format` (string): Indicate to the theme that this is a wide asset by setting this to `wide`. Defaults `normal`.
 
-You can read more about publishing and embedding DocumentCloud resources on https://www.documentcloud.org/help/publishing.
+You can read more about publishing and embedding sourceAFRICA resources on https://sourceafrica.net/help/publishing.
 
 ## Caching
 
 Ideally, when WordPress hits our oEmbed service to fetch the embed code, it would obey the `cache_age` we return. Despite [conversation](https://core.trac.wordpress.org/ticket/14759) around this, it doesn't seem to.
 
-Instead, it lets us choose between no cache at all (so *every pageload* triggers a call to our oEmbed service to get the embed code) or a supposed 24-hour cache stored in the `postmeta` table. Unfortunately, [our tests](https://github.com/documentcloud/wordpress-documentcloud/issues/20) seem to show this cache is never expired, which means we can choose between no cache (thus possibly DDOSing ourselves) or a permanent cache (thus possibly having stale embed codes). We've chosen the latter; hopefully this cache does eventually expire, and our embed codes shouldn't change that often anyway.
+Instead, it lets us choose between no cache at all (so *every pageload* triggers a call to our oEmbed service to get the embed code) or a supposed 24-hour cache stored in the `postmeta` table. Unfortunately, [DocumentCloud's tests](https://github.com/documentcloud/wordpress-documentcloud/issues/20) seem to show this cache is never expired, which means we can choose between no cache (thus possibly DDOSing ourselves) or a permanent cache (thus possibly having stale embed codes). We've chosen the latter; hopefully this cache does eventually expire, and our embed codes shouldn't change that often anyway.
 
 If you find yourself absolutely needing to expire the cache, though, you have two choices:
 
@@ -79,24 +81,9 @@ If you find yourself absolutely needing to expire the cache, though, you have tw
 
 ## Changelog
 
-### 0.3.1
-* Check for old (Navis) plugin and warn admins of conflict
-* Add note about raw URLs to README
-* Stop storing shortcode attributes in the `postmeta` table
-
-### 0.3
-* Add support for embedding notes.
-* Default to responsive.
-* Enable caching.
-
-### 0.2
-* Fetch embed code via oEmbed instead of generating statically.
-* Add new options: `container`, `responsive`, `responsive_offset`, `default_page`, `default_note`, `notes`, `search`, and `zoom`.
-* Deprecate `id` attribute. It's still usable, but support may drop in the future. Use `url` instead.
-
 ### 0.1
-* Initial release.
+* Initial release. v0.3.1 of DocumentCloud's Plugin.
 
 ## License and History
 
-The DocumentCloud WordPress plugin is [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html). Initial development of this plugin by Chris Amico (@eyeseast) supported by [NPR](http://www.npr.org) as part of [StateImpact](http://stateimpact.npr.org) project. Development continued by Justin Reese (@reefdog) at [DocumentCloud](https://www.documentcloud.org/).
+The sourceAFRICA WordPress plugin is [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html). Initial development of this plugin by Chris Amico (@eyeseast) supported by [NPR](http://www.npr.org) as part of [StateImpact](http://stateimpact.npr.org) project. Development continued by Justin Reese (@reefdog) at [DocumentCloud](https://www.documentcloud.org/) and extended by [Code for Africa](http://www.codeforafrica.org) to support [sourceAFRICA](https://sourceafrica.net).

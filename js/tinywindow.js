@@ -7,7 +7,7 @@ function insertDocumentCode() {
     var html = inst.selection.getContent();
     
     // var url = $('input[name]=url').val();
-    var shortcode = "[documentcloud "
+    var shortcode = "[sourceafrica "
                     + shortcode_format('url', $('input#url').val())
                     + shortcode_format('format', $('select#format').val())
                     + shortcode_format('sidebar', $('input#sidebar:checked').val() || false)

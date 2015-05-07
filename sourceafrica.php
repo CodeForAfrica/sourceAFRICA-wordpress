@@ -1,15 +1,16 @@
 <?php
 /***
- * Plugin Name: DocumentCloud
- * Plugin URI: https://www.documentcloud.org/
- * Description: Embed DocumentCloud resources in WordPress content.
+ * Plugin Name: sourceAFRICA
+ * Plugin URI: https://sourceafrica.net/
+ * Description: Embed sourceAFRICA resources in WordPress content.
  * Version: 0.3.1
- * Authors: Chris Amico, Justin Reese
+ * Authors: Chris Amico, Justin Reese, David Lemayian
  * License: GPLv2
 ***/
 /*
     Copyright 2011 National Public Radio, Inc.
     Copyright 2015 DocumentCloud, Investigative Reporters & Editors
+    Copyright 2015 Code for Africa.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -25,20 +26,18 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-class WP_DocumentCloud {
+class WP_SourceAFRICA {
 
     const CACHING_ENABLED          = true,
           DEFAULT_EMBED_FULL_WIDTH = 940,
-          OEMBED_RESOURCE_DOMAIN   = 'www.documentcloud.org',
-          OEMBED_PROVIDER          = 'https://www.documentcloud.org/api/oembed.{format}',
-          DOCUMENT_PATTERN         = '^(?P<protocol>https?)://www\.documentcloud\.org/documents/(?P<document_slug>[0-9]+-[a-z0-9-]+)';
+          OEMBED_RESOURCE_DOMAIN   = 'sourceafrica.net',
+          OEMBED_PROVIDER          = 'https://sourceafrica.net/api/oembed.{format}',
+          DOCUMENT_PATTERN         = '^(?P<protocol>https?)://sourceafrica.net\.org/documents/(?P<document_slug>[0-9]+-[a-z0-9-]+)';
     
     function __construct() {
 
-        add_action('admin_init', array(&$this, 'check_dc_plugin_conflict'));
-
         add_action('init', array(&$this, 'register_dc_oembed_provider'));
-        add_shortcode('documentcloud', array(&$this, 'handle_dc_shortcode'));
+        add_shortcode('sourceafrica', array(&$this, 'handle_dc_shortcode'));
         add_filter('oembed_fetch_url', array(&$this, 'add_dc_arguments'), 10, 3);
 
         // Setup TinyMCE shortcode-generation plugin
@@ -51,20 +50,7 @@ class WP_DocumentCloud {
         // Store metadata upon post save
         add_action('save_post', array(&$this, 'save'));
     }
-    
-    function check_dc_plugin_conflict() {
-        if (is_plugin_active('navis-documentcloud/navis-documentcloud.php')) {
-            add_action( 'admin_notices', array(&$this, 'dc_conflict_admin_notice'));
-        }
-    }
 
-    function dc_conflict_admin_notice() {
-        ?>
-        <div class="error">
-            <p><?php _e( '<b>Warning!</b> You have two conflicting DocumentCloud plugins activated. Please deactivate Navis DocumentCloud, which has been replaced by <a target="_blank" href="https://wordpress.org/plugins/documentcloud/">DocumentCloud</a>.', 'documentcloud-plugin-conflict' ); ?></p>
-        </div>
-        <?php
-    }
 
     function register_dc_oembed_provider() {
     /*
@@ -77,16 +63,16 @@ class WP_DocumentCloud {
     */
         // add_filter( 'http_request_host_is_external', '__return_true');
 
-        wp_oembed_add_provider("http://"  . WP_DocumentCloud::OEMBED_RESOURCE_DOMAIN . "/documents/*",  WP_DocumentCloud::OEMBED_PROVIDER);
-        wp_oembed_add_provider("https://" . WP_DocumentCloud::OEMBED_RESOURCE_DOMAIN . "/documents/*",  WP_DocumentCloud::OEMBED_PROVIDER);
+        wp_oembed_add_provider("http://"  . WP_SourceAFRICA::OEMBED_RESOURCE_DOMAIN . "/documents/*",  WP_SourceAFRICA::OEMBED_PROVIDER);
+        wp_oembed_add_provider("https://" . WP_SourceAFRICA::OEMBED_RESOURCE_DOMAIN . "/documents/*",  WP_SourceAFRICA::OEMBED_PROVIDER);
     }
 
     function get_default_sizes() {
         $wp_embed_defaults = wp_embed_defaults();
 
-        $height     = intval(get_option('documentcloud_default_height', $wp_embed_defaults['height']));
-        $width      = intval(get_option('documentcloud_default_width', $wp_embed_defaults['width']));
-        $full_width = intval(get_option('documentcloud_full_width', WP_DocumentCloud::DEFAULT_EMBED_FULL_WIDTH));
+        $height     = intval(get_option('sourceafrica_default_height', $wp_embed_defaults['height']));
+        $width      = intval(get_option('sourceafrica_default_width', $wp_embed_defaults['width']));
+        $full_width = intval(get_option('sourceafrica_full_width', WP_SourceAFRICA::DEFAULT_EMBED_FULL_WIDTH));
 
         return array (
             'height'     => $height,
@@ -161,7 +147,7 @@ class WP_DocumentCloud {
                 return '';
             }
             else {
-                $url = $filtered_atts['url'] = "https://" . WP_DocumentCloud::OEMBED_RESOURCE_DOMAIN . "/documents/{$atts['id']}.html";
+                $url = $filtered_atts['url'] = "https://" . WP_SourceAFRICA::OEMBED_RESOURCE_DOMAIN . "/documents/{$atts['id']}.html";
             }
         } else {
             // Some resources (like notes) have multiple possible
@@ -211,11 +197,11 @@ class WP_DocumentCloud {
     function parse_dc_url($url) {
         $patterns = array(
             // Document
-            '{' . WP_DocumentCloud::DOCUMENT_PATTERN . '\.html$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '\.html$}',
             // Notes and note variants
-            '{' . WP_DocumentCloud::DOCUMENT_PATTERN . '/annotations/(?P<note_id>[0-9]+)\.(html|js)$}',
-            '{' . WP_DocumentCloud::DOCUMENT_PATTERN . '.html#document/p([0-9]+)/a(?P<note_id>[0-9]+)$}',
-            '{' . WP_DocumentCloud::DOCUMENT_PATTERN . '.html#annotation/a(?P<note_id>[0-9]+)$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '/annotations/(?P<note_id>[0-9]+)\.(html|js)$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '.html#document/p([0-9]+)/a(?P<note_id>[0-9]+)$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '.html#annotation/a(?P<note_id>[0-9]+)$}',
         );
 
         $elements = array();
@@ -231,7 +217,7 @@ class WP_DocumentCloud {
     function clean_dc_url($url) {
         $elements = $this->parse_dc_url($url);
         if ($elements['document_slug']) {
-            $url = "{$elements['protocol']}://" . WP_DocumentCloud::OEMBED_RESOURCE_DOMAIN . "/documents/{$elements['document_slug']}" .
+            $url = "{$elements['protocol']}://" . WP_SourceAFRICA::OEMBED_RESOURCE_DOMAIN . "/documents/{$elements['document_slug']}" .
                    ($elements['note_id'] ? "/annotations/{$elements['note_id']}" : '') . '.html';
         }
         return $url;
@@ -251,31 +237,31 @@ class WP_DocumentCloud {
     }
         
     function add_tinymce_plugin($plugin_array) {
-        $plugin_array['documentcloud'] = plugins_url(
-            'js/documentcloud-editor-plugin.js', __FILE__);
+        $plugin_array['sourceafrica'] = plugins_url(
+            'js/sourceafrica-editor-plugin.js', __FILE__);
         return $plugin_array;
     }
     
     function register_button($buttons) {
-        array_push($buttons, '|', 'documentcloud');
+        array_push($buttons, '|', 'sourceAFRICA');
         return $buttons;
     }
     
     // Setup settings for plugin
 
     function add_options_page() {
-        add_options_page('DocumentCloud', 'DocumentCloud', 'manage_options', 
-                        'documentcloud', array(&$this, 'render_options_page'));
+        add_options_page('sourceAFRICA', 'sourceAFRICA', 'manage_options',
+                        'sourceafrica', array(&$this, 'render_options_page'));
     }
     
     function render_options_page() { ?>
-        <h2>DocumentCloud Options</h2>
+        <h2>sourceAFRICA Options</h2>
         <form action="options.php" method="post">
 
             <p>Any widths set here will only take effect if you set <code>responsive="false"</code> on an embed.</p>
             
-            <?php settings_fields('documentcloud'); ?>
-            <?php do_settings_sections('documentcloud'); ?>
+            <?php settings_fields('sourceafrica'); ?>
+            <?php do_settings_sections('sourceafrica'); ?>
             
             <p><input class="button-primary" name="Submit" type="submit" value="<?php esc_attr_e('Save Changes'); ?>" /></p>
         </form>
@@ -283,36 +269,36 @@ class WP_DocumentCloud {
     }
     
     function settings_init() {
-        add_settings_section('documentcloud', '',
-            array(&$this, 'settings_section'), 'documentcloud');
+        add_settings_section('sourceafrica', '',
+            array(&$this, 'settings_section'), 'sourceafrica');
         
-        add_settings_field('documentcloud_default_height', 'Default embed height (px)',
-            array(&$this, 'default_height_field'), 'documentcloud', 'documentcloud');
-        register_setting('documentcloud', 'documentcloud_default_height');
+        add_settings_field('sourceafrica_default_height', 'Default embed height (px)',
+            array(&$this, 'default_height_field'), 'sourceafrica', 'sourceafrica');
+        register_setting('sourceafrica', 'sourceafrica_default_height');
         
-        add_settings_field('documentcloud_default_width', 'Default embed width (px)',
-            array(&$this, 'default_width_field'), 'documentcloud', 'documentcloud');
-        register_setting('documentcloud', 'documentcloud_default_width');
+        add_settings_field('sourceafrica_default_width', 'Default embed width (px)',
+            array(&$this, 'default_width_field'), 'sourceafrica', 'sourceafrica');
+        register_setting('sourceafrica', 'sourceafrica_default_width');
         
-        add_settings_field('documentcloud_full_width', 'Full-width embed width (px)',
-            array(&$this, 'full_width_field'), 'documentcloud', 'documentcloud');
-        register_setting('documentcloud', 'documentcloud_full_width');
+        add_settings_field('sourceafrica_full_width', 'Full-width embed width (px)',
+            array(&$this, 'full_width_field'), 'sourceafrica', 'sourceafrica');
+        register_setting('sourceafrica', 'sourceafrica_full_width');
         
     }
     
     function default_height_field() {
         $default_sizes = $this->get_default_sizes();
-        echo "<input type='text' value='{$default_sizes['height']}' name='documentcloud_default_height' />";
+        echo "<input type='text' value='{$default_sizes['height']}' name='sourceafrica_default_height' />";
     }
     
     function default_width_field() {
         $default_sizes = $this->get_default_sizes();
-        echo "<input type='text' value='{$default_sizes['width']}' name='documentcloud_default_width' />";
+        echo "<input type='text' value='{$default_sizes['width']}' name='sourceafrica_default_height' />";
     }
     
     function full_width_field() {
         $default_sizes = $this->get_default_sizes();
-        echo "<input type='text' value='{$default_sizes['full_width']}' name='documentcloud_full_width' />";
+        echo "<input type='text' value='{$default_sizes['full_width']}' name='sourceafrica_full_width' />";
     }
     
     function settings_section() {}
@@ -337,7 +323,7 @@ class WP_DocumentCloud {
         $tags = $matches[2];
         $args = $matches[3];
         foreach($tags as $i => $tag) {
-            if ($tag == "documentcloud") {
+            if ($tag == "sourceafrica") {
                 $parsed_atts = shortcode_parse_atts($args[$i]);
                 $atts = shortcode_atts($default_atts, $parsed_atts);
 
@@ -368,4 +354,4 @@ class WP_DocumentCloud {
     
 }
 
-new WP_DocumentCloud;
+new WP_SourceAFRICA;
