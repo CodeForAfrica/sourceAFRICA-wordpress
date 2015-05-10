@@ -75,6 +75,9 @@ You can read more about publishing and embedding sourceAFRICA resources on https
 
 == Changelog ==
 
+= 0.1.1 =
+* Fixed TinyMCE url issues.
+
 = 0.1 =
 * Initial release. v0.3.1 of DocumentCloud's Plugin.
 

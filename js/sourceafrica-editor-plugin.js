@@ -61,12 +61,12 @@
                 author : 'Code for Africa',
                 authorurl : 'http://www.codeforafrica.org/',
                 infourl : 'https://sourceafrica.net/',
-                version : "1.0"
+                version : '0.1.1'
             };
         }
     });
 
     // Register plugin
-    tinymce.PluginManager.add('sourceafrica', tinymce.plugins.DocumentCloud);
+    tinymce.PluginManager.add('sourceafrica', tinymce.plugins.sourceAFRICA);
 })();
 

@@ -14,10 +14,10 @@ if (substr($SITEURL, -1) != '/') {
 <html lang="en">
 <head>
     <title>Insert a Document</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<!--    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>-->
     <script src="<?php echo $SITEURL; ?>wp-includes/js/tinymce/tiny_mce_popup.js"></script>
     <script src="<?php echo $SITEURL; ?>wp-includes/js/tinymce/utils/form_utils.js"></script>
-    <script src="<?php echo $SITEURL; ?>wp-content/plugins/sourceafrica/js/tinywindow.js?version=1"></script>
+    <script src="<?php echo plugins_url('js/tinywindow.js', __FILE__) ?>"></script>
     <style>
     form p {
         font-size: 1.5em;
