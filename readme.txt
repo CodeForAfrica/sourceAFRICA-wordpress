@@ -1,5 +1,5 @@
 === sourceAFRICA ===
-Contributors: chrisamico, reefdog, davidlemayian
+Contributors: chrisamico, reefdog, DavidLemayian
 Tags: sourceafrica, documentcloud, documents, journalism, reporting, research
 Requires at least: 3.2
 Tested up to: 4.2.2
