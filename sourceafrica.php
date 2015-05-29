@@ -3,7 +3,7 @@
  * Plugin Name: sourceAFRICA
  * Plugin URI: https://sourceafrica.net/
  * Description: Embed sourceAFRICA resources in WordPress content.
- * Version: 0.1.2
+ * Version: 0.1.3
  * Authors: David Lemayian, Chris Amico, Justin Reese
  * License: GPLv2
 ***/

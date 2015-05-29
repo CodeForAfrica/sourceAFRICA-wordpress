@@ -11,7 +11,7 @@ Embed sourceAFRICA resources in WordPress content.
 
 == Description ==
 
-[sourceAFRICA](https://sourceafrica.net/) is a service provided by [African Network of Centers for Investigative Reporting](http://investigativecenters.org) that allows journalists to analyze, annotate, and publish documents, hosted by [Code for Africa](http://www.codeforafrica.org]. Initial development of this plugin supported by [NPR](http://www.npr.org) as part of [StateImpact](http://stateimpact.npr.org) project and continues to be supported by [DocumentCloud](https://www.documentcloud.org).
+[sourceAFRICA](https://sourceafrica.net/) is a service provided by [African Network of Centers for Investigative Reporting](http://investigativecenters.org) that allows journalists to analyze, annotate, and publish documents, hosted by [Code for Africa](http://www.codeforafrica.org). Initial development of this plugin supported by [NPR](http://www.npr.org) as part of [StateImpact](http://stateimpact.npr.org) project and continues to be supported by [DocumentCloud](https://www.documentcloud.org).
 
 This plugin allows you to embed sourceAFRICA resources using either the raw URL on its own line:
 
@@ -74,6 +74,9 @@ You can read more about publishing and embedding sourceAFRICA resources on https
 **Using with DocumentCloud Plugin:** If you're currently using the DocumentCloud's plugin (from which this plugin was built), you'll NOT need to deactivate or delete it before installing this plugin.
 
 == Changelog ==
+
+= 0.1.3 =
+* Fixed some more readme URLs.
 
 = 0.1.2 =
 * Fixed Readme URLs.
