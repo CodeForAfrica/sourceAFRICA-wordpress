@@ -17,27 +17,27 @@ This plugin allows you to embed sourceAFRICA resources using either the raw URL 
 
     Here's something you should really take a look at:
     
-    https://sourceafrica.net/documents/19450-everest.html
+    https://sourceafrica.net/documents/19789-everest.html
     
     Isn't that interesting?
 
 Or a custom shortcode:
 
-    [sourceafrica url="https://sourceafrica.net/documents/19450-everest.html"]
+    [sourceafrica url="https://sourceafrica.net/documents/19789-everest.html"]
 
 When you save, WordPress fetches and stores the actual embed code HTML from the sourceAFRICA servers using oEmbed. You can freely toggle between visual and HTML mode without mangling embed code, and your embed will always be up to date with the latest embed code.
 
 By default, documents will have a responsive width (it will narrow and widen as necessary to fill available content area) and use the theme's default height. If you want to override this, you can either set `responsive="false"` or explicitly set a `width`:
 
-    [sourceafrica url="https://sourceafrica.net/documents/19450-everest.html" width="600"]
+    [sourceafrica url="https://sourceafrica.net/documents/19789-everest.html" width="600"]
 
 You can set your own defaults in Settings > DocumentCloud, but default widths will be ignored unless `responsive` is disabled:
 
-    [documentcloud url="https://sourceafrica.net/documents/19450-everest.html" responsive="false"]
+    [documentcloud url="https://sourceafrica.net/documents/19789-everest.html" responsive="false"]
 
 To embed a note, just use any note-specific URL. Notes ignore `width/height` and always act responsively:
 
-    [documentcloud url="https://sourceafrica.net/documents/19450-everest.html#document/p1/a142"]
+    [documentcloud url="https://sourceafrica.net/documents/19789-everest.html#document/p1/a143"]
 
 Here's the full list of embed options you can pass via shortcode attributes; some are specific to the type of resource you're embedding.
 
@@ -74,6 +74,9 @@ You can read more about publishing and embedding sourceAFRICA resources on https
 **Using with DocumentCloud Plugin:** If you're currently using the DocumentCloud's plugin (from which this plugin was built), you'll NOT need to deactivate or delete it before installing this plugin.
 
 == Changelog ==
+
+= 0.1.2 =
+* Fixed Readme URLs.
 
 = 0.1.1 =
 * Fixed TinyMCE url issues.
