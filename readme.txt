@@ -2,7 +2,7 @@
 Contributors: DavidLemayian, chrisamico, reefdog
 Tags: sourceafrica, documentcloud, documents, journalism, reporting, research
 Requires at least: 3.2
-Tested up to: 4.2.2
+Tested up to: 4.4
 Stable tag: trunk
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -31,17 +31,21 @@ By default, documents will have a responsive width (it will narrow and widen as 
 
     [sourceafrica url="https://sourceafrica.net/documents/19789-everest.html" width="600"]
 
-You can set your own defaults in Settings > DocumentCloud, but default widths will be ignored unless `responsive` is disabled:
+You can set your own defaults in Settings > sourceAFRICA, but default widths will be ignored unless `responsive` is disabled:
 
-    [documentcloud url="https://sourceafrica.net/documents/19789-everest.html" responsive="false"]
+    [sourceafrica url="https://sourceafrica.net/documents/19789-everest.html" responsive="false"]
 
-To embed a note, just use any note-specific URL. Notes ignore `width/height` and always act responsively:
+To embed a single page, use any page-specific URL. Pages ignore `width/height` and always act responsively:
 
-    [documentcloud url="https://sourceafrica.net/documents/19789-everest.html#document/p1/a143"]
+    [sourceafrica url="https://sourceafrica.net/documents/19789-everest.html#document/p1"]
+
+To embed a note, use any note-specific URL. Notes ignore `width/height` and always act responsively:
+
+    [sourceafrica url="https://sourceafrica.net/documents/19789-everest.html#document/p1/a143"]
 
 Here's the full list of embed options you can pass via shortcode attributes; some are specific to the type of resource you're embedding.
 
-**All resources (documents and notes):**
+**All resources:**
 
 - `url` (**required**, string): Full URL of the sourceAFRICA resource.
 - `container` (string): ID of element to insert the embed into; if excluded, embedder will create its own container.
@@ -66,14 +70,17 @@ You can read more about publishing and embedding sourceAFRICA resources on https
 
 == Installation ==
 
-1. Upload the contents of the plugin to `wp-content/plugins/documentcloud`
+1. Upload the contents of the plugin to `wp-content/plugins/sourceafrica`
 2. Activate the plugin through the "Plugins" menu
-3. In your posts, embed documents or notes using the sourceAFRICA button or the `[sourceAFRICA]` shortcode
+3. In your posts, embed documents, pages, or notes using the sourceAFRICA button or the `[sourceafrica]` shortcode
 4. Optional: Set a default width/height for all sourceAFRICA embeds (which can be overridden on a per-embed basis with the `height/width` attributes) at Settings > sourceAFRICA. (This default width will only be used if you set `responsive="false"` on an embed.)
 
 **Using with DocumentCloud Plugin:** If you're currently using the DocumentCloud's plugin (from which this plugin was built), you'll NOT need to deactivate or delete it before installing this plugin.
 
 == Changelog ==
+
+= 0.2.0 =
+* Updated to v.0.4.0 of DocumentCloud's Plugin
 
 = 0.1.3 =
 * Fixed some more readme URLs.

@@ -3,7 +3,7 @@
  * Plugin Name: sourceAFRICA
  * Plugin URI: https://sourceafrica.net/
  * Description: Embed sourceAFRICA resources in WordPress content.
- * Version: 0.1.3
+ * Version: 0.2.0
  * Authors: David Lemayian, Chris Amico, Justin Reese
  * License: GPLv2
 ***/
@@ -26,6 +26,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// Die if this isn't being called from within WordPress.
+defined( 'ABSPATH' ) or die();
+
 class WP_SourceAFRICA {
 
     const CACHING_ENABLED          = true,
@@ -37,11 +40,11 @@ class WP_SourceAFRICA {
     function __construct() {
 
         add_action('init', array(&$this, 'register_dc_oembed_provider'));
-        add_shortcode('sourceafrica', array(&$this, 'handle_dc_shortcode'));
-        add_filter('oembed_fetch_url', array(&$this, 'add_dc_arguments'), 10, 3);
 
-        // Setup TinyMCE shortcode-generation plugin
-        // add_action('init', array(&$this, 'register_tinymce_filters'));
+        // Only called when `[sourceafrica]` shortcode is used
+        add_shortcode('sourceafrica', array(&$this, 'process_dc_shortcode'));
+        // Called just before oEmbed endpoint is hit
+        add_filter('oembed_fetch_url', array(&$this, 'prepare_oembed_fetch'), 10, 3);
 
         // Setup admin settings
         add_action('admin_menu', array(&$this, 'add_options_page'));
@@ -52,6 +55,9 @@ class WP_SourceAFRICA {
     }
 
 
+    // Register ourselves as an oEmbed provider. WordPress does NOT cURL the 
+    // resource to inspect it for an oEmbed link tag; we have to tell it what 
+    // our oEmbed endpoint looks like.
     function register_dc_oembed_provider() {
     /*
         Hello developer. If you wish to test this plugin against your
@@ -113,7 +119,8 @@ class WP_SourceAFRICA {
         );
     }
 
-    function add_dc_arguments($provider, $url, $args) {
+    function prepare_oembed_fetch($provider, $url, $args) {
+        // Clean and prepare arguments
         foreach ($args as $key => $value) {
             switch ($key) {
                 case 'format':
@@ -123,14 +130,26 @@ class WP_SourceAFRICA {
                     // Don't pass these attributes to the provider
                     break;
                 default:
+                    // Without this check, `add_query_arg()` will treat values 
+                    // that are actually ID selectors, like `container=#foo`, 
+                    // as URL fragments and throw them at the end of the URL.
+                    if (strpos($value, '#') === 0) {
+                        $value = urlencode($value);
+                    }
                     $provider = add_query_arg( $key, $value, $provider );
                     break;
             }
         }
+
+        // Some resources (like notes) have multiple possible
+        // user-facing URLs. We recompose them into a single form.
+        $url = $this->clean_dc_url($url);
+        $provider = add_query_arg( 'url', urlencode($url), $provider );
+
     	return $provider;
     }
 
-    function handle_dc_shortcode($atts) {
+    function process_dc_shortcode($atts) {
         $default_sizes  = $this->get_default_sizes();
         $default_atts   = $this->get_default_atts();
 
@@ -149,10 +168,6 @@ class WP_SourceAFRICA {
             else {
                 $url = $filtered_atts['url'] = "https://" . WP_SourceAFRICA::OEMBED_RESOURCE_DOMAIN . "/documents/{$atts['id']}.html";
             }
-        } else {
-            // Some resources (like notes) have multiple possible
-            // user-facing URLs. We recompose them into a single form.
-            $url = $filtered_atts['url'] = $this->clean_dc_url($atts['url']);
         }
 
         // `height/width` beat `maxheight/maxwidth`; see full precedence list in `get_default_atts()`.
@@ -187,9 +202,10 @@ class WP_SourceAFRICA {
             // This lets WordPress cache the result of the oEmbed call.
             // Thanks to http://bit.ly/1HykA0U for this pattern.
             global $wp_embed;
+            $url = $filtered_atts['url'] = $this->clean_dc_url($atts['url']);
             return $wp_embed->shortcode($filtered_atts, $url);
         } else {
-            return wp_oembed_get($url, $filtered_atts);
+            return wp_oembed_get($atts['url'], $filtered_atts);
         }
 
     }
@@ -198,10 +214,13 @@ class WP_SourceAFRICA {
         $patterns = array(
             // Document
             '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '\.html$}',
+            // Pages and page variants
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '.html#document\/p(?P<page_number>[0-9]+)$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '\/pages\/(?P<page_number>[0-9]+)\.(html|js)$}',
             // Notes and note variants
-            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '/annotations/(?P<note_id>[0-9]+)\.(html|js)$}',
-            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '.html#document/p([0-9]+)/a(?P<note_id>[0-9]+)$}',
-            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '.html#annotation/a(?P<note_id>[0-9]+)$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '\/annotations\/(?P<note_id>[0-9]+)\.(html|js)$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '.html#document\/p([0-9]+)/a(?P<note_id>[0-9]+)$}',
+            '{' . WP_SourceAFRICA::DOCUMENT_PATTERN . '.html#annotation\/a(?P<note_id>[0-9]+)$}',
         );
 
         $elements = array();
@@ -211,47 +230,32 @@ class WP_SourceAFRICA {
                 break;
             }
         }
+
         return $elements;
     }
 
     function clean_dc_url($url) {
         $elements = $this->parse_dc_url($url);
-        if ($elements['document_slug']) {
-            $url = "{$elements['protocol']}://" . WP_SourceAFRICA::OEMBED_RESOURCE_DOMAIN . "/documents/{$elements['document_slug']}" .
-                   ($elements['note_id'] ? "/annotations/{$elements['note_id']}" : '') . '.html';
+        if (isset($elements['document_slug'])) {
+            $url = "{$elements['protocol']}://" . WP_SourceAFRICA::OEMBED_RESOURCE_DOMAIN . "/documents/{$elements['document_slug']}";
+            if (isset($elements['page_number'])) {
+                $url .= "/pages/{$elements['page_number']}";
+            }
+            else if (isset($elements['note_id'])) {
+                $url .= "/annotations/{$elements['note_id']}";
+            }
+            $url .= '.html';
         }
         return $url;
     }
 
-    // Setup TinyMCE shortcode button
-
-    function register_tinymce_filters() {
-        add_filter('mce_external_plugins', 
-            array(&$this, 'add_tinymce_plugin')
-        );
-
-        add_filter('mce_buttons', 
-            array(&$this, 'register_button')
-        );
-        
-    }
-        
-    function add_tinymce_plugin($plugin_array) {
-        $plugin_array['sourceafrica'] = plugins_url(
-            'js/sourceafrica-editor-plugin.js', __FILE__);
-        return $plugin_array;
-    }
-    
-    function register_button($buttons) {
-        array_push($buttons, '|', 'sourceAFRICA');
-        return $buttons;
-    }
-    
     // Setup settings for plugin
 
     function add_options_page() {
-        add_options_page('sourceAFRICA', 'sourceAFRICA', 'manage_options',
-                        'sourceafrica', array(&$this, 'render_options_page'));
+        if (current_user_can('manage_options')) {
+            add_options_page('sourceAFRICA', 'sourceAFRICA', 'manage_options',
+                             'sourceafrica', array(&$this, 'render_options_page'));
+        }
     }
     
     function render_options_page() { ?>
@@ -269,87 +273,94 @@ class WP_SourceAFRICA {
     }
     
     function settings_init() {
-        add_settings_section('sourceafrica', '',
-            array(&$this, 'settings_section'), 'sourceafrica');
+        if (current_user_can('manage_options')) {
+            add_settings_section('sourceafrica', '',
+                array(&$this, 'settings_section'), 'sourceafrica');
         
-        add_settings_field('sourceafrica_default_height', 'Default embed height (px)',
-            array(&$this, 'default_height_field'), 'sourceafrica', 'sourceafrica');
-        register_setting('sourceafrica', 'sourceafrica_default_height');
+            add_settings_field('sourceafrica_default_height', 'Default embed height (px)',
+                array(&$this, 'default_height_field'), 'sourceafrica', 'sourceafrica');
+            register_setting('sourceafrica', 'sourceafrica_default_height');
         
-        add_settings_field('sourceafrica_default_width', 'Default embed width (px)',
-            array(&$this, 'default_width_field'), 'sourceafrica', 'sourceafrica');
-        register_setting('sourceafrica', 'sourceafrica_default_width');
+            add_settings_field('documentcloud_default_width', 'Default embed width (px)',
+                array(&$this, 'default_width_field'), 'sourceafrica', 'sourceafrica');
+            register_setting('sourceafrica', 'sourceafrica_default_width');
         
-        add_settings_field('sourceafrica_full_width', 'Full-width embed width (px)',
-            array(&$this, 'full_width_field'), 'sourceafrica', 'sourceafrica');
-        register_setting('sourceafrica', 'sourceafrica_full_width');
-        
+            add_settings_field('documentcloud_full_width', 'Full-width embed width (px)',
+                array(&$this, 'full_width_field'), 'sourceafrica', 'sourceafrica');
+            register_setting('sourceafrica', 'sourceafrica_full_width');
+        }
     }
     
     function default_height_field() {
         $default_sizes = $this->get_default_sizes();
-        echo "<input type='text' value='{$default_sizes['height']}' name='sourceafrica_default_height' />";
+        echo '<input type="text" value="' . esc_html($default_sizes['height']) . '" name="sourceafrica_default_height" />';
     }
     
     function default_width_field() {
         $default_sizes = $this->get_default_sizes();
-        echo "<input type='text' value='{$default_sizes['width']}' name='sourceafrica_default_height' />";
+        echo '<input type="text" value="' . esc_html($default_sizes['width']) . '" name="sourceafrica_default_width" />';
     }
     
     function full_width_field() {
         $default_sizes = $this->get_default_sizes();
-        echo "<input type='text' value='{$default_sizes['full_width']}' name='sourceafrica_full_width' />";
+        echo '<input type="text" value="' . esc_html($default_sizes['full_width']) . '" name="sourceafrica_full_width" />';
     }
     
     function settings_section() {}
     
     function save($post_id) {
         // tell the post if we're carrying a wide load        
+        if (current_user_can('edit_posts')) {
+            $post = get_post($post_id);
         
-        $post = get_post($post_id);
+            // avoid autosave
+            if (!in_array($post->post_status, array(
+                'publish', 'draft', 'private', 'future', 'pending'
+                )) 
+            ) { return; }
         
-        // avoid autosave
-        if (!in_array($post->post_status, array(
-            'publish', 'draft', 'private', 'future', 'pending'
-            )) 
-        ) { return; }
-        
-        $default_sizes = $this->get_default_sizes();
-        $default_atts = $this->get_default_atts();
-        $wide_assets = get_post_meta($post_id, 'wide_assets', true);
-        $matches = array();
+            $default_sizes = $this->get_default_sizes();
+            $default_atts = $this->get_default_atts();
+            $wide_assets = get_post_meta($post_id, 'wide_assets', true);
+            $matches = array();
                 
-        preg_match_all('/'.get_shortcode_regex().'/', $post->post_content, $matches);
-        $tags = $matches[2];
-        $args = $matches[3];
-        foreach($tags as $i => $tag) {
-            if ($tag == "sourceafrica") {
-                $parsed_atts = shortcode_parse_atts($args[$i]);
-                $atts = shortcode_atts($default_atts, $parsed_atts);
+            preg_match_all('/'.get_shortcode_regex().'/', $post->post_content, $matches);
+            $tags = $matches[2];
+            $args = $matches[3];
+            foreach($tags as $i => $tag) {
+                if ($tag == "sourceafrica") {
+                    $parsed_atts = shortcode_parse_atts($args[$i]);
+                    $atts = shortcode_atts($default_atts, $parsed_atts);
 
-                // get a doc id to keep array keys consistent
-                if (isset($atts['url'])) {
-                    $elements = $this->parse_dc_url($atts['url']);
-                    $meta_key = $elements['document_slug'];
-                    if ($elements['note_id']) {
-                        $meta_key .= "-{$elements['note_id']}";
+                    // get a doc id to keep array keys consistent
+                    if (isset($atts['url'])) {
+                        $elements = $this->parse_dc_url($atts['url']);
+                        if (isset($elements['document_slug'])) {
+                            $meta_key = $elements['document_slug'];
+                            if (isset($elements['page_number'])) {
+                                $meta_key .= "-p{$elements['page_number']}";
+                            }
+                            else if (isset($elements['note_id'])) {
+                                $meta_key .= "-a{$elements['note_id']}";
+                            }
+                        }
+                    } else if (isset($atts['id'])) {
+                        $meta_key = $atts['id'];
                     }
-                } else if (isset($atts['id'])) {
-                    $meta_key = $atts['id'];
-                }
                 
-                // if no id, don't bother storing because it's wrong
-                if ($meta_key) {
-                    $width = intval(isset($parsed_atts['width']) ? $parsed_atts['width'] : $atts['maxwidth']);
-                    if ($atts['format'] == "wide" || $width > $default_sizes['width']) {
-                        $wide_assets[$meta_key] = true;
-                    } else {
-                        $wide_assets[$meta_key] = false;
+                    // if no id, don't bother storing because it's wrong
+                    if (isset($meta_key)) {
+                        $width = intval(isset($parsed_atts['width']) ? $parsed_atts['width'] : $atts['maxwidth']);
+                        if ($atts['format'] == "wide" || $width > $default_sizes['width']) {
+                            $wide_assets[$meta_key] = true;
+                        } else {
+                            $wide_assets[$meta_key] = false;
+                        }
                     }
                 }
             }
+            update_post_meta($post_id, 'wide_assets', $wide_assets);
         }
-        update_post_meta($post_id, 'wide_assets', $wide_assets);
     }
     
 }
